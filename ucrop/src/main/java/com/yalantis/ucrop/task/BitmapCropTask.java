@@ -3,11 +3,12 @@ package com.yalantis.ucrop.task;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.RectF;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.exifinterface.media.ExifInterface;
+
 import android.util.Log;
 
 import com.yalantis.ucrop.callback.BitmapCropCallback;
