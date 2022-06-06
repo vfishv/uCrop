@@ -6,13 +6,14 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
-import androidx.annotation.ColorInt;
-import androidx.core.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.yalantis.ucrop.R;
+
+import androidx.annotation.ColorInt;
+import androidx.core.content.ContextCompat;
 
 /**
  * Created by Oleksii Shliama (https://github.com/shliama).
@@ -58,6 +59,7 @@ public class HorizontalProgressWheelView extends View {
 
     public void setMiddleLineColor(@ColorInt int middleLineColor) {
         mMiddleLineColor = middleLineColor;
+        mProgressMiddleLinePaint.setColor(mMiddleLineColor);
         invalidate();
     }
 

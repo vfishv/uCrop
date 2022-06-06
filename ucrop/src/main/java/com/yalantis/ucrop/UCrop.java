@@ -10,18 +10,19 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.FloatRange;
-import androidx.annotation.IntRange;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.yalantis.ucrop.model.AspectRatio;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.FloatRange;
+import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * Created by Oleksii Shliama (https://github.com/shliama).
@@ -278,11 +279,11 @@ public class UCrop {
         public static final String EXTRA_CROP_GRID_ROW_COUNT = EXTRA_PREFIX + ".CropGridRowCount";
         public static final String EXTRA_CROP_GRID_COLUMN_COUNT = EXTRA_PREFIX + ".CropGridColumnCount";
         public static final String EXTRA_CROP_GRID_COLOR = EXTRA_PREFIX + ".CropGridColor";
+        public static final String EXTRA_CROP_GRID_CORNER_COLOR = EXTRA_PREFIX + ".CropGridCornerColor";
         public static final String EXTRA_CROP_GRID_STROKE_WIDTH = EXTRA_PREFIX + ".CropGridStrokeWidth";
 
         public static final String EXTRA_TOOL_BAR_COLOR = EXTRA_PREFIX + ".ToolbarColor";
         public static final String EXTRA_STATUS_BAR_COLOR = EXTRA_PREFIX + ".StatusBarColor";
-        public static final String EXTRA_UCROP_COLOR_WIDGET_ACTIVE = EXTRA_PREFIX + ".UcropColorWidgetActive";
         public static final String EXTRA_UCROP_COLOR_CONTROLS_WIDGET_ACTIVE = EXTRA_PREFIX + ".UcropColorControlsWidgetActive";
 
         public static final String EXTRA_UCROP_WIDGET_COLOR_TOOLBAR = EXTRA_PREFIX + ".UcropToolbarWidgetColor";
@@ -426,6 +427,13 @@ public class UCrop {
         }
 
         /**
+         * @param color - desired color of crop grid/guidelines corner
+         */
+        public void setCropGridCornerColor(@ColorInt int color) {
+            mOptionBundle.putInt(EXTRA_CROP_GRID_CORNER_COLOR, color);
+        }
+
+        /**
          * @param width - desired width of crop grid lines in pixels
          */
         public void setCropGridStrokeWidth(@IntRange(from = 0) int width) {
@@ -447,14 +455,7 @@ public class UCrop {
         }
 
         /**
-         * @param color - desired resolved color of the progress wheel middle line (default is violet)
-         */
-        public void setActiveWidgetColor(@ColorInt int color) {
-            mOptionBundle.putInt(EXTRA_UCROP_COLOR_WIDGET_ACTIVE, color);
-        }
-
-        /**
-         * @param color - desired resolved color of the active and selected widget (default is white)
+         * @param color - desired resolved color of the active and selected widget and progress wheel middle line (default is white)
          */
         public void setActiveControlsWidgetColor(@ColorInt int color) {
             mOptionBundle.putInt(EXTRA_UCROP_COLOR_CONTROLS_WIDGET_ACTIVE, color);
@@ -516,9 +517,9 @@ public class UCrop {
          * @param aspectRatio       - list of aspect ratio options that are available to user
          */
         public void setAspectRatioOptions(int selectedByDefault, AspectRatio... aspectRatio) {
-            if (selectedByDefault > aspectRatio.length) {
+            if (selectedByDefault >= aspectRatio.length) {
                 throw new IllegalArgumentException(String.format(Locale.US,
-                        "Index [selectedByDefault = %d] cannot be higher than aspect ratio options count [count = %d].",
+                        "Index [selectedByDefault = %d] (0-based) cannot be higher or equal than aspect ratio options count [count = %d].",
                         selectedByDefault, aspectRatio.length));
             }
             mOptionBundle.putInt(EXTRA_ASPECT_RATIO_SELECTED_BY_DEFAULT, selectedByDefault);

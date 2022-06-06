@@ -9,19 +9,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.IdRes;
-import androidx.annotation.IntDef;
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.transition.AutoTransition;
-import androidx.transition.Transition;
-import androidx.transition.TransitionManager;
-
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -55,6 +42,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.IdRes;
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.transition.AutoTransition;
+import androidx.transition.Transition;
+import androidx.transition.TransitionManager;
+
 /**
  * Created by Oleksii Shliama (https://github.com/shliama).
  */
@@ -87,7 +88,6 @@ public class UCropActivity extends AppCompatActivity {
     // Enables dynamic coloring
     private int mToolbarColor;
     private int mStatusBarColor;
-    private int mActiveWidgetColor;
     private int mActiveControlsWidgetColor;
     private int mToolbarWidgetColor;
     @ColorInt
@@ -115,6 +115,10 @@ public class UCropActivity extends AppCompatActivity {
     private Bitmap.CompressFormat mCompressFormat = DEFAULT_COMPRESS_FORMAT;
     private int mCompressQuality = DEFAULT_COMPRESS_QUALITY;
     private int[] mAllowedGestures = new int[]{SCALE, ROTATE, ALL};
+
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -248,23 +252,25 @@ public class UCropActivity extends AppCompatActivity {
         mOverlayView.setCropGridRowCount(intent.getIntExtra(UCrop.Options.EXTRA_CROP_GRID_ROW_COUNT, OverlayView.DEFAULT_CROP_GRID_ROW_COUNT));
         mOverlayView.setCropGridColumnCount(intent.getIntExtra(UCrop.Options.EXTRA_CROP_GRID_COLUMN_COUNT, OverlayView.DEFAULT_CROP_GRID_COLUMN_COUNT));
         mOverlayView.setCropGridColor(intent.getIntExtra(UCrop.Options.EXTRA_CROP_GRID_COLOR, getResources().getColor(R.color.ucrop_color_default_crop_grid)));
+        mOverlayView.setCropGridCornerColor(intent.getIntExtra(UCrop.Options.EXTRA_CROP_GRID_CORNER_COLOR, getResources().getColor(R.color.ucrop_color_default_crop_grid)));
         mOverlayView.setCropGridStrokeWidth(intent.getIntExtra(UCrop.Options.EXTRA_CROP_GRID_STROKE_WIDTH, getResources().getDimensionPixelSize(R.dimen.ucrop_default_crop_grid_stoke_width)));
 
         // Aspect ratio options
-        float aspectRatioX = intent.getFloatExtra(UCrop.EXTRA_ASPECT_RATIO_X, 0);
-        float aspectRatioY = intent.getFloatExtra(UCrop.EXTRA_ASPECT_RATIO_Y, 0);
+        float aspectRatioX = intent.getFloatExtra(UCrop.EXTRA_ASPECT_RATIO_X, -1);
+        float aspectRatioY = intent.getFloatExtra(UCrop.EXTRA_ASPECT_RATIO_Y, -1);
 
         int aspectRationSelectedByDefault = intent.getIntExtra(UCrop.Options.EXTRA_ASPECT_RATIO_SELECTED_BY_DEFAULT, 0);
         ArrayList<AspectRatio> aspectRatioList = intent.getParcelableArrayListExtra(UCrop.Options.EXTRA_ASPECT_RATIO_OPTIONS);
 
-        if (aspectRatioX > 0 && aspectRatioY > 0) {
+        if (aspectRatioX >= 0 && aspectRatioY >= 0) {
             if (mWrapperStateAspectRatio != null) {
                 mWrapperStateAspectRatio.setVisibility(View.GONE);
             }
-            mGestureCropImageView.setTargetAspectRatio(aspectRatioX / aspectRatioY);
+            float targetAspectRatio = aspectRatioX / aspectRatioY;
+            mGestureCropImageView.setTargetAspectRatio(Float.isNaN(targetAspectRatio) ? CropImageView.SOURCE_IMAGE_ASPECT_RATIO : targetAspectRatio);
         } else if (aspectRatioList != null && aspectRationSelectedByDefault < aspectRatioList.size()) {
-            mGestureCropImageView.setTargetAspectRatio(aspectRatioList.get(aspectRationSelectedByDefault).getAspectRatioX() /
-                    aspectRatioList.get(aspectRationSelectedByDefault).getAspectRatioY());
+            float targetAspectRatio = aspectRatioList.get(aspectRationSelectedByDefault).getAspectRatioX() / aspectRatioList.get(aspectRationSelectedByDefault).getAspectRatioY();
+            mGestureCropImageView.setTargetAspectRatio(Float.isNaN(targetAspectRatio) ? CropImageView.SOURCE_IMAGE_ASPECT_RATIO : targetAspectRatio);
         } else {
             mGestureCropImageView.setTargetAspectRatio(CropImageView.SOURCE_IMAGE_ASPECT_RATIO);
         }
@@ -282,12 +288,11 @@ public class UCropActivity extends AppCompatActivity {
     private void setupViews(@NonNull Intent intent) {
         mStatusBarColor = intent.getIntExtra(UCrop.Options.EXTRA_STATUS_BAR_COLOR, ContextCompat.getColor(this, R.color.ucrop_color_statusbar));
         mToolbarColor = intent.getIntExtra(UCrop.Options.EXTRA_TOOL_BAR_COLOR, ContextCompat.getColor(this, R.color.ucrop_color_toolbar));
-        mActiveWidgetColor = intent.getIntExtra(UCrop.Options.EXTRA_UCROP_COLOR_WIDGET_ACTIVE, ContextCompat.getColor(this, R.color.ucrop_color_widget_background));
         mActiveControlsWidgetColor = intent.getIntExtra(UCrop.Options.EXTRA_UCROP_COLOR_CONTROLS_WIDGET_ACTIVE, ContextCompat.getColor(this, R.color.ucrop_color_active_controls_color));
 
         mToolbarWidgetColor = intent.getIntExtra(UCrop.Options.EXTRA_UCROP_WIDGET_COLOR_TOOLBAR, ContextCompat.getColor(this, R.color.ucrop_color_toolbar_widget));
-        mToolbarCancelDrawable = intent.getIntExtra(UCrop.Options.EXTRA_UCROP_WIDGET_CANCEL_DRAWABLE, R.drawable.ic_close_white_24dp);
-        mToolbarCropDrawable = intent.getIntExtra(UCrop.Options.EXTRA_UCROP_WIDGET_CROP_DRAWABLE, R.drawable.ic_done_white_24dp);
+        mToolbarCancelDrawable = intent.getIntExtra(UCrop.Options.EXTRA_UCROP_WIDGET_CANCEL_DRAWABLE, R.drawable.ucrop_ic_cross);
+        mToolbarCropDrawable = intent.getIntExtra(UCrop.Options.EXTRA_UCROP_WIDGET_CROP_DRAWABLE, R.drawable.ucrop_ic_done);
         mToolbarTitle = intent.getStringExtra(UCrop.Options.EXTRA_UCROP_TITLE_TEXT_TOOLBAR);
         mToolbarTitle = mToolbarTitle != null ? mToolbarTitle : getResources().getString(R.string.ucrop_label_edit_photo);
         mLogoColor = intent.getIntExtra(UCrop.Options.EXTRA_UCROP_LOGO_COLOR, ContextCompat.getColor(this, R.color.ucrop_color_default_logo));
@@ -302,7 +307,6 @@ public class UCropActivity extends AppCompatActivity {
             ViewGroup viewGroup = findViewById(R.id.ucrop_photobox);
             ViewGroup wrapper = viewGroup.findViewById(R.id.controls_wrapper);
             wrapper.setVisibility(View.VISIBLE);
-            wrapper.setBackgroundColor(mRootViewBackgroundColor);
             LayoutInflater.from(this).inflate(R.layout.ucrop_controls, wrapper, true);
 
             mControlsTransition = new AutoTransition();
@@ -364,6 +368,11 @@ public class UCropActivity extends AppCompatActivity {
         ((ImageView) findViewById(R.id.image_view_logo)).setColorFilter(mLogoColor, PorterDuff.Mode.SRC_ATOP);
 
         findViewById(R.id.ucrop_frame).setBackgroundColor(mRootViewBackgroundColor);
+        if (!mShowBottomControls) {
+            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) findViewById(R.id.ucrop_frame).getLayoutParams();
+            params.bottomMargin = 0;
+            findViewById(R.id.ucrop_frame).requestLayout();
+        }
     }
 
     private TransformImageView.TransformImageListener mImageListener = new TransformImageView.TransformImageListener() {
@@ -394,7 +403,7 @@ public class UCropActivity extends AppCompatActivity {
     };
 
     /**
-     * Use {@link #mActiveWidgetColor} for color filter
+     * Use {@link #mActiveControlsWidgetColor} for color filter
      */
     private void setupStatesWrapper() {
         ImageView stateScaleImageView = findViewById(R.id.image_view_state_scale);
@@ -450,7 +459,7 @@ public class UCropActivity extends AppCompatActivity {
             wrapperAspectRatio = (FrameLayout) getLayoutInflater().inflate(R.layout.ucrop_aspect_ratio, null);
             wrapperAspectRatio.setLayoutParams(lp);
             aspectRatioTextView = ((AspectRatioTextView) wrapperAspectRatio.getChildAt(0));
-            aspectRatioTextView.setActiveColor(mActiveWidgetColor);
+            aspectRatioTextView.setActiveColor(mActiveControlsWidgetColor);
             aspectRatioTextView.setAspectRatio(aspectRatio);
 
             wrapperAspectRatioList.addView(wrapperAspectRatio);
@@ -496,7 +505,7 @@ public class UCropActivity extends AppCompatActivity {
                     }
                 });
 
-        ((HorizontalProgressWheelView) findViewById(R.id.rotate_scroll_wheel)).setMiddleLineColor(mActiveWidgetColor);
+        ((HorizontalProgressWheelView) findViewById(R.id.rotate_scroll_wheel)).setMiddleLineColor(mActiveControlsWidgetColor);
 
 
         findViewById(R.id.wrapper_reset_rotate).setOnClickListener(new View.OnClickListener() {
@@ -511,6 +520,7 @@ public class UCropActivity extends AppCompatActivity {
                 rotateByAngle(90);
             }
         });
+        setAngleTextColor(mActiveControlsWidgetColor);
     }
 
     private void setupScaleWidget() {
@@ -538,7 +548,9 @@ public class UCropActivity extends AppCompatActivity {
                         mGestureCropImageView.cancelAllAnimations();
                     }
                 });
-        ((HorizontalProgressWheelView) findViewById(R.id.scale_scroll_wheel)).setMiddleLineColor(mActiveWidgetColor);
+        ((HorizontalProgressWheelView) findViewById(R.id.scale_scroll_wheel)).setMiddleLineColor(mActiveControlsWidgetColor);
+
+        setScaleTextColor(mActiveControlsWidgetColor);
     }
 
     private void setAngleText(float angle) {
@@ -547,9 +559,21 @@ public class UCropActivity extends AppCompatActivity {
         }
     }
 
+    private void setAngleTextColor(int textColor) {
+        if (mTextViewRotateAngle != null) {
+            mTextViewRotateAngle.setTextColor(textColor);
+        }
+    }
+
     private void setScaleText(float scale) {
         if (mTextViewScalePercent != null) {
             mTextViewScalePercent.setText(String.format(Locale.getDefault(), "%d%%", (int) (scale * 100)));
+        }
+    }
+
+    private void setScaleTextColor(int textColor) {
+        if (mTextViewScalePercent != null) {
+            mTextViewScalePercent.setTextColor(textColor);
         }
     }
 

@@ -1,9 +1,7 @@
 package com.yalantis.ucrop.sample;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Animatable;
@@ -11,13 +9,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -42,6 +33,13 @@ import com.yalantis.ucrop.UCropFragmentCallback;
 import java.io.File;
 import java.util.Locale;
 import java.util.Random;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
 /**
  * Created by Oleksii Shliama (https://github.com/shliama).
@@ -104,23 +102,6 @@ public class SampleActivity extends BaseActivity implements UCropFragmentCallbac
             handleCropError(data);
         }
     }
-
-    /**
-     * Callback received when a permissions request has been completed.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_STORAGE_READ_ACCESS_PERMISSION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    pickFromGallery();
-                }
-                break;
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-    }
-
 
     private TextWatcher mAspectRatioTextWatcher = new TextWatcher() {
         @Override
@@ -226,24 +207,16 @@ public class SampleActivity extends BaseActivity implements UCropFragmentCallbac
     }
 
     private void pickFromGallery() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermission(Manifest.permission.READ_EXTERNAL_STORAGE,
-                    getString(R.string.permission_read_storage_rationale),
-                    REQUEST_STORAGE_READ_ACCESS_PERMISSION);
-        } else {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT)
-                    .setType("image/*")
-                    .addCategory(Intent.CATEGORY_OPENABLE);
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT)
+                .setType("image/*")
+                .addCategory(Intent.CATEGORY_OPENABLE);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                String[] mimeTypes = {"image/jpeg", "image/png"};
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-            }
-
-            startActivityForResult(Intent.createChooser(intent, getString(R.string.label_select_picture)), requestMode);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            String[] mimeTypes = {"image/jpeg", "image/png"};
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         }
+
+        startActivityForResult(Intent.createChooser(intent, getString(R.string.label_select_picture)), requestMode);
     }
 
     private void startCrop(@NonNull Uri uri) {
@@ -371,17 +344,19 @@ public class SampleActivity extends BaseActivity implements UCropFragmentCallbac
         // Color palette
         options.setToolbarColor(ContextCompat.getColor(this, R.color.your_color_res));
         options.setStatusBarColor(ContextCompat.getColor(this, R.color.your_color_res));
-        options.setActiveWidgetColor(ContextCompat.getColor(this, R.color.your_color_res));
         options.setToolbarWidgetColor(ContextCompat.getColor(this, R.color.your_color_res));
         options.setRootViewBackgroundColor(ContextCompat.getColor(this, R.color.your_color_res));
+        options.setActiveControlsWidgetColor(ContextCompat.getColor(this, R.color.your_color_res));
 
         // Aspect ratio options
-        options.setAspectRatioOptions(1,
+        options.setAspectRatioOptions(2,
             new AspectRatio("WOW", 1, 2),
             new AspectRatio("MUCH", 3, 4),
             new AspectRatio("RATIO", CropImageView.DEFAULT_ASPECT_RATIO, CropImageView.DEFAULT_ASPECT_RATIO),
             new AspectRatio("SO", 16, 9),
             new AspectRatio("ASPECT", 1, 1));
+        options.withAspectRatio(CropImageView.DEFAULT_ASPECT_RATIO, CropImageView.DEFAULT_ASPECT_RATIO);
+        options.useSourceImageAspectRatio();
 
        */
 
@@ -448,7 +423,7 @@ public class SampleActivity extends BaseActivity implements UCropFragmentCallbac
         settingsView.setVisibility(View.GONE);
         mStatusBarColor = args.getInt(UCrop.Options.EXTRA_STATUS_BAR_COLOR, ContextCompat.getColor(this, R.color.ucrop_color_statusbar));
         mToolbarColor = args.getInt(UCrop.Options.EXTRA_TOOL_BAR_COLOR, ContextCompat.getColor(this, R.color.ucrop_color_toolbar));
-        mToolbarCancelDrawable = args.getInt(UCrop.Options.EXTRA_UCROP_WIDGET_CANCEL_DRAWABLE, R.drawable.ic_close_white_24dp);
+        mToolbarCancelDrawable = args.getInt(UCrop.Options.EXTRA_UCROP_WIDGET_CANCEL_DRAWABLE, R.drawable.ucrop_ic_cross);
         mToolbarCropDrawable = args.getInt(UCrop.Options.EXTRA_UCROP_WIDGET_CROP_DRAWABLE, R.drawable.ucrop_ic_done);
         mToolbarWidgetColor = args.getInt(UCrop.Options.EXTRA_UCROP_WIDGET_COLOR_TOOLBAR, ContextCompat.getColor(this, R.color.ucrop_color_toolbar_widget));
         mToolbarTitle = args.getString(UCrop.Options.EXTRA_UCROP_TITLE_TEXT_TOOLBAR);

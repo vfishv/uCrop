@@ -41,6 +41,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
+import androidx.exifinterface.media.ExifInterface;
+
 /**
  * A class for parsing the exif orientation from an image header.
  */
