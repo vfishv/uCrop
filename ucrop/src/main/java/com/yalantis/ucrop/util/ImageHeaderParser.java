@@ -33,8 +33,6 @@ package com.yalantis.ucrop.util;
 import android.text.TextUtils;
 import android.util.Log;
 
-import androidx.exifinterface.media.ExifInterface;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
